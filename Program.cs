@@ -19,7 +19,7 @@ bool IsIgnoredPath(string path)
     return false;
 }
 
-List<DirectoryInfo> GetAllDirectory()
+List<DirectoryInfo> GetAllDirectories()
 {
     var infos = new List<DirectoryInfo>();
     var directoryInfo = new DirectoryInfo(rootFolder);
@@ -54,7 +54,7 @@ void ConvertFileNames(CaseStyle caseStyle)
 
 void ConvertFolderNames(CaseStyle caseStyle)
 {
-    foreach (var dirInfo in GetAllDirectory())
+    foreach (var dirInfo in GetAllDirectories())
     {
         var oldPath = dirInfo.FullName;
         var newName = dirInfo.Name.ToCase(caseStyle);
