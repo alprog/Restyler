@@ -52,15 +52,24 @@ namespace Restyler
             }
         }
 
+        string FixFolderName(string name)
+        {
+            if (name.EndsWith('\\'))
+            {
+                return name.Substring(0, name.Count() - 1);
+            }
+            return name;
+        }
+
         void ConvertProjectIncludes()
         {
             var restyler = new Restyler();
             restyler.OpenFile(FS.ProjectPath);
 
             var converter = new PathConverter(CaseStyle);
-            foreach (var folder in FS.IgnoredFolderNames)
+            foreach (var folderName in FS.IgnoredFolderNames)
             {
-                converter.IgnoredFolders.Add(folder);
+                converter.IgnoredFolders.Add(FixFolderName(folderName));
             }
 
             var isIncludeLine = (string s) => s.Contains("ClCompile") || s.Contains("ClInclude");

@@ -10,7 +10,7 @@ namespace Restyler
     {
         public static string RootFolder = "C:\\finik\\source";
         public static string ProjectPath = Path.Join(RootFolder, "finik.vcxproj");
-        public static List<string> IgnoredFolderNames = new List<string>() { "3rd-party", ".vs" };
+        public static List<string> IgnoredFolderNames = new List<string>() { "3rd-party\\", ".vs" };
 
         public static bool IsIgnoredPath(string path)
         {
