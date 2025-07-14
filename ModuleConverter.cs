@@ -31,10 +31,13 @@ namespace Restyler
                     var subline = line.GetSubLineBetween(beginSequence, ";");
                     if (subline.IsValid())
                     {
-                        if (subline.Value != "std")
+                        var value = subline.Value;
+                        if (value == "std" || value[0] == '<')
                         {
-                            subline.Value = subline.Value.ToCase(CaseStyle);
+                            continue;
                         }
+
+                        subline.Value = value.ToCase(CaseStyle);
                     }
                 }
             }
