@@ -1,58 +1,31 @@
 ﻿
 using System.IO;
-
-string Replace(string str, int startIndex, int endIndex, string newString)
-{
-    return str.Substring(0, startIndex) + newString + str.Substring(endIndex);
-}
-
-List<string> ParseWords(string name)
-{
-    var words = new List<string>();
-
-    int start = 0;
-    int index = 0;
-
-    var flushWord = () => 
-    {
-        var word = name.Substring(start, index - start);
-        word = Char.ToUpper(word[0]) + word.Substring(1);
-        words.Add(word);
-        start = index;
-    };
-
-    while (++index < name.Count())
-    {
-        char c = name[index];
-        if (c == '_')
-        {
-            flushWord();
-            start++;
-            index++;
-        }
-        else if (Char.IsUpper(c))
-        {
-            flushWord();
-        }
-    }
-    flushWord();
-
-    return words;
-}
-
-string ToSnakeCase(string name)
-{
-    return String.Join('_', ParseWords(name)).ToLower();
-}
-
-string ToPascalCase(string name)
-{
-    return String.Join(null, ParseWords(name));
-}
+using Restyler;
 
 var rootFolder = "C:/finik/source";
 var projectPath = Path.Join(rootFolder, "finik.vcxproj");
-var ignoredFolderName = "3rd-party";
+var ignoredFolderNames = new List<string>() { "3rd-party", ".vs" };
+
+bool IsIgnoredPath(string path)
+{
+    foreach (var ignoredFolderName in ignoredFolderNames)
+    {
+        if (path.Contains(ignoredFolderName))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+List<DirectoryInfo> GetAllDirectory()
+{
+    var infos = new List<DirectoryInfo>();
+    var directoryInfo = new DirectoryInfo(rootFolder);
+    infos.AddRange(directoryInfo.GetDirectories("*", SearchOption.AllDirectories));
+    infos.RemoveAll((DirectoryInfo info) => { return IsIgnoredPath(info.FullName); });
+    return infos;
+}
 
 List<FileInfo> GetAllFiles()
 {
@@ -61,53 +34,100 @@ List<FileInfo> GetAllFiles()
     infos.AddRange(directoryInfo.GetFiles("*.cpp", SearchOption.AllDirectories));
     infos.AddRange(directoryInfo.GetFiles("*.ixx", SearchOption.AllDirectories));
     infos.AddRange(directoryInfo.GetFiles("*.h", SearchOption.AllDirectories));
-    infos.RemoveAll((FileInfo info) => { return info.FullName.Contains(ignoredFolderName); });
+    infos.RemoveAll((FileInfo info) => { return IsIgnoredPath(info.FullName); });
     return infos;
 }
 
-void Main()
+void ConvertFileNames(CaseStyle caseStyle)
 {
     foreach (var fileInfo in GetAllFiles())
     {
         var oldPath = fileInfo.FullName;
         var directory = fileInfo.DirectoryName;
-        var newName = ToPascalCase(Path.GetFileNameWithoutExtension(fileInfo.Name));
+        var newName = Path.GetFileNameWithoutExtension(fileInfo.Name).ToCase(caseStyle);
         var extenstion = fileInfo.Extension;
         var newPath = Path.Join(directory, newName + extenstion);
         File.Move(oldPath, newPath);
     }
+}
 
-    var projectLines = File.ReadAllLines(projectPath);
-
-    var sequence = " Include=";
-    for (int i = 0; i < projectLines.Count(); i++)
+void ConvertFolderNames(CaseStyle caseStyle)
+{
+    foreach (var dirInfo in GetAllDirectory())
     {
-        var line = projectLines[i];
-
-        if (line.Contains(ignoredFolderName))
+        var oldPath = dirInfo.FullName;
+        var newName = dirInfo.Name.ToCase(caseStyle);
+        var newPath = Path.Join(dirInfo.Parent.FullName, newName);
+        if (oldPath != newPath)
         {
-            continue;
+            Directory.Move(oldPath, newPath);
         }
-
-        if (!line.Contains("ClCompile") && !line.Contains("ClInclude"))
-        {
-            continue;
-        }
-
-        int startIndex = line.IndexOf(sequence);
-        if (startIndex < 0)
-        {
-            continue;
-        }
-        startIndex += sequence.Count() + 1;
-
-        var endIndex = line.IndexOf('.', startIndex);
-        startIndex = Math.Max(startIndex, line.LastIndexOf('\\', endIndex) + 1);
-
-        var newName = ToPascalCase(line.Substring(startIndex, endIndex - startIndex));
-        projectLines[i] = Replace(line, startIndex, endIndex, newName);
     }
-    File.WriteAllLines(projectPath, projectLines);
+}
+
+void ConvertProjectIncludes(CaseStyle caseStyle)
+{
+    var restyler = new Restyler.Restyler();
+    restyler.OpenFile(projectPath);
+
+    var isIncludeLine = (string s) => s.Contains("ClCompile") || s.Contains("ClInclude");
+
+    foreach (var line in restyler.GetAllLines(isIncludeLine))
+    {
+        var subLine = line.GetSubLineBetween("Include=\"", "\"");
+        if (subLine.IsValid())
+        {
+            Console.WriteLine(subLine);
+        }
+    }
+
+    //restyler.SaveAndClose();
+
+    //----------------
+
+    //var projectLines = File.ReadAllLines(projectPath);
+
+    //var sequence = " Include=";
+    //for (int i = 0; i < projectLines.Count(); i++)
+    //{
+    //    var line = projectLines[i];
+
+    //    if (IsIgnoredPath(line))
+    //    {
+    //        continue;
+    //    }
+
+    //    if (!line.Contains("ClCompile") && !line.Contains("ClInclude"))
+    //    {
+    //        continue;
+    //    }
+
+    //    int startIndex = line.IndexOf(sequence);
+    //    if (startIndex < 0)
+    //    {
+    //        continue;
+    //    }
+    //    startIndex += sequence.Count() + 1;
+
+    //    var endIndex = line.IndexOf('.', startIndex);
+    //    startIndex = Math.Max(startIndex, line.LastIndexOf('\\', endIndex) + 1);
+
+    //    var newName = ToStyle(line.Substring(startIndex, endIndex - startIndex), caseStyle);
+    //    projectLines[i] = line.Replace(startIndex, endIndex, newName);
+    //}
+    //File.WriteAllLines(projectPath, projectLines);
+}
+
+void ConvertFiles(CaseStyle caseStyle)
+{
+    //ConvertFileNames(caseStyle);
+    //ConvertFolderNames(caseStyle);
+    ConvertProjectIncludes(caseStyle);
+}
+
+void Main()
+{
+    ConvertFiles(CaseStyle.Pascal);
 }
 
 Main();
