@@ -14,6 +14,7 @@ namespace Restyler
 
         public TextFile(FileInfo fileInfo)
         {
+            this.FileInfo = fileInfo;
             var rawLines = File.ReadAllLines(fileInfo.FullName);
             foreach (var rawLine in rawLines)
             {

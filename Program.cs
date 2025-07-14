@@ -1,16 +1,17 @@
 ﻿
+using System;
 using System.IO;
 using Restyler;
 
 var rootFolder = "C:/finik/source";
 var projectPath = Path.Join(rootFolder, "finik.vcxproj");
-var ignoredFolderNames = new List<string>() { "3rd-party", ".vs" };
+var ignoredFolderNames = new List<string>() { "3rd-party\\", ".vs" };
 
 bool IsIgnoredPath(string path)
 {
     foreach (var ignoredFolderName in ignoredFolderNames)
     {
-        if (path.Contains(ignoredFolderName))
+        if (path.ToLower().Contains(ignoredFolderName))
         {
             return true;
         }
@@ -70,58 +71,27 @@ void ConvertProjectIncludes(CaseStyle caseStyle)
     var restyler = new Restyler.Restyler();
     restyler.OpenFile(projectPath);
 
-    var isIncludeLine = (string s) => s.Contains("ClCompile") || s.Contains("ClInclude");
+    var converter = new PathConverter(caseStyle);
+    converter.IgnoredFolders.Add("3rd-party");
 
+    var isIncludeLine = (string s) => s.Contains("ClCompile") || s.Contains("ClInclude");
     foreach (var line in restyler.GetAllLines(isIncludeLine))
     {
         var subLine = line.GetSubLineBetween("Include=\"", "\"");
         if (subLine.IsValid())
         {
-            Console.WriteLine(subLine);
+            subLine.ExcludeExtension();
+            subLine.Value = converter.Convert(subLine.Value);
         }
     }
 
-    //restyler.SaveAndClose();
-
-    //----------------
-
-    //var projectLines = File.ReadAllLines(projectPath);
-
-    //var sequence = " Include=";
-    //for (int i = 0; i < projectLines.Count(); i++)
-    //{
-    //    var line = projectLines[i];
-
-    //    if (IsIgnoredPath(line))
-    //    {
-    //        continue;
-    //    }
-
-    //    if (!line.Contains("ClCompile") && !line.Contains("ClInclude"))
-    //    {
-    //        continue;
-    //    }
-
-    //    int startIndex = line.IndexOf(sequence);
-    //    if (startIndex < 0)
-    //    {
-    //        continue;
-    //    }
-    //    startIndex += sequence.Count() + 1;
-
-    //    var endIndex = line.IndexOf('.', startIndex);
-    //    startIndex = Math.Max(startIndex, line.LastIndexOf('\\', endIndex) + 1);
-
-    //    var newName = ToStyle(line.Substring(startIndex, endIndex - startIndex), caseStyle);
-    //    projectLines[i] = line.Replace(startIndex, endIndex, newName);
-    //}
-    //File.WriteAllLines(projectPath, projectLines);
+    restyler.SaveAndClose();
 }
 
 void ConvertFiles(CaseStyle caseStyle)
 {
-    //ConvertFileNames(caseStyle);
-    //ConvertFolderNames(caseStyle);
+    ConvertFileNames(caseStyle);
+    ConvertFolderNames(caseStyle);
     ConvertProjectIncludes(caseStyle);
 }
 

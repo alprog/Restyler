@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 
 namespace Restyler
 {
-    public enum CaseStyle
+    public enum CharType
     {
-        Pascal,
-        Snake,
-        Caps
+        None,
+        LowerAlpha,
+        UpperAlpha,
+        Digit,
+        Symbol
     }
 }

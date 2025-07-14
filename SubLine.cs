@@ -37,6 +37,15 @@ namespace Restyler
             }
         }
 
+        public void ExcludeExtension()
+        {
+            int index = Value.LastIndexOf('.');
+            if (index >= 0)
+            {
+                this.Count = index;
+            }
+        }
+
         public static implicit operator string(SubLine line)
         {
             return line.Value;
