@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace Restyler
 {
-    public class FilesConverter
+    public class FileCaseConverter
     {
         private CaseStyle CaseStyle;
 
-        public FilesConverter(CaseStyle caseStyle)
+        public FileCaseConverter(CaseStyle caseStyle)
         {
             this.CaseStyle = caseStyle;
         }

@@ -16,7 +16,7 @@ namespace Restyler
         {
             foreach (var ignoredFolderName in IgnoredFolderNames)
             {
-                if (path.ToLower().Contains(ignoredFolderName + "\\"))
+                if (path.ToLower().Contains(ignoredFolderName))
                 {
                     return true;
                 }

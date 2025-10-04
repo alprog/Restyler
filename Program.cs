@@ -3,9 +3,10 @@ using Restyler;
 
 void Main()
 {
-    //new FilesConverter(CaseStyle.Pascal).Run();
+    //new FileCaseConverter(CaseStyle.Pascal).Run();
+    //new ModuleCaseConverter(CaseStyle.Pascal).Run();
 
-    new ModuleConverter(CaseStyle.Pascal).Run();
+    new ModuleFolderConverter().Run();
 }
 
 Main();
